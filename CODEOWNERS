@@ -1,0 +1,29 @@
+# CODEOWNERS — role ownership matrix (#21 / #23 step 1)
+#
+# STATUS: ADVISORY, NOT YET ENFORCED.
+# This file DECLARES the intended ownership boundary. It becomes a *hard gate*
+# only once the owner settles the #31 enforcement posture (protected branch /
+# required review), which is currently blocked on a repo plan/visibility change.
+# See docs: internal/tests/e2e/agent-loop/references/governance-enforcement.md
+# Until then, CODEOWNERS + branch protection are documented intent, not a
+# technical control. Do not read this file as proof a boundary is enforced.
+#
+# Owners (placeholders — the owner assigns real GitHub identities as part of #31):
+#   @OWNER      — the human owner (approves governance / risk / publication)
+#   @LEAD       — the lead agent identity (Claude): product, infra, docs, main, publish
+#   @QA         — the QA agent identity (Codex): tests + evidence under internal/tests/e2e/
+
+# Default: lead owns everything not otherwise specified.
+*                                   @LEAD
+
+# QA authors its own role/tests/evidence; lead reviews + merges.
+/internal/tests/e2e/tg-litellm-qa/  @QA @LEAD
+/internal/tests/e2e/                @QA @LEAD
+
+# Governance / automation / standing instructions require the OWNER before merge
+# (this line is the intended human-in-the-loop gate; enforcement pending #31).
+/CODEOWNERS                         @OWNER
+/.github/                           @OWNER @LEAD
+/CLAUDE.md                          @OWNER @LEAD
+/AGENTS.md                          @OWNER @LEAD
+/internal/tests/e2e/agent-loop/     @OWNER @LEAD
