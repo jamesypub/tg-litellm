@@ -1,0 +1,31 @@
+# Sample ~/.bash_profile additions for the LiteLLM gateway (env = dev).
+#
+# These are the two launcher functions the admin's rendered package APPENDS to
+# your ~/.bash_profile — shown here scrubbed so you can see the exact shape and
+# copy it. Append the block(s) for the tool(s) you use, then:
+#   source ~/.bash_profile
+#   claude-lg-dev      # or: codex-lg-dev
+#
+# Nothing to replace in THIS file — the gateway URL and your key live in the
+# per-tool config the launchers point at (claude-setup/settings.json and
+# codex-setup/dev.key). These functions only isolate config and scrub
+# conflicting provider vars so a launch can't silently bypass the gateway.
+# Kept byte-identical to render-handoff.sh output (a drift test guards this).
+
+# ----- Claude Code: isolated config + fail-closed provider scrub -----
+claude-lg-dev() {
+  for v in CLAUDE_CODE_USE_BEDROCK CLAUDE_CODE_USE_VERTEX ANTHROPIC_API_KEY AWS_PROFILE AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN; do
+    if [ -n "${!v:-}" ]; then echo "claude-lg-dev: refusing to launch — conflicting provider var $v is set; open a clean shell" >&2; return 3; fi
+  done
+  env -u CLAUDE_CODE_USE_BEDROCK -u CLAUDE_CODE_USE_VERTEX -u ANTHROPIC_API_KEY \
+      CLAUDE_CONFIG_DIR="$HOME/.claude-lg-dev" claude "$@"
+}
+
+# ----- Codex CLI: sources the owner-only key file + fail-closed scrub -----
+codex-lg-dev() {
+  for v in OPENAI_API_KEY AWS_PROFILE AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN; do
+    if [ -n "${!v:-}" ]; then echo "codex-lg-dev: refusing to launch — conflicting var $v is set; open a clean shell" >&2; return 3; fi
+  done
+  . "$HOME/.codex/dev.key"
+  env -u OPENAI_API_KEY codex --profile dev "$@"
+}

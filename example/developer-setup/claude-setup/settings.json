@@ -1,0 +1,9 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://EXAMPLE.cloudfront.net",
+    "ANTHROPIC_AUTH_TOKEN": "sk-<your-key>",
+    "ANTHROPIC_MODEL": "claude-opus-4-8",
+    "ANTHROPIC_SMALL_FAST_MODEL": "claude-haiku-4-5-20251001"
+  },
+  "permissions": { "defaultMode": "default" }
+}

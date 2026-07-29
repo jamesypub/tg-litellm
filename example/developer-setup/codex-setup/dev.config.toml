@@ -1,0 +1,10 @@
+model = "openai.gpt-5.6-sol"
+model_provider = "litellm-gw"
+model_catalog_json = "~/.codex/dev-models.json"
+web_search = "disabled"
+
+[model_providers.litellm-gw]
+name = "LiteLLM Gateway"
+base_url = "https://EXAMPLE.cloudfront.net/v1"
+env_key = "LITELLM_KEY"
+wire_api = "responses"

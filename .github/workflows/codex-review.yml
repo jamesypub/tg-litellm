@@ -1,0 +1,83 @@
+# Codex cross-provider PR review — #23 step 2. ADVISORY / NON-BLOCKING.
+#
+# Runs OpenAI Codex as an independent reviewer on PRs and posts findings as a
+# comment. The check is intentionally NON-BLOCKING: it never fails the job, so it
+# cannot gate merge. Flipping it to a required, merge-blocking gate is owner-gated
+# via #31 (see internal/tests/e2e/agent-loop/references/governance-enforcement.md).
+#
+# Security:
+#   - `permissions` is least-privilege: read the repo, write PR comments only.
+#   - Runs on a self-hosted runner (Codex + demo0 Bedrock profile live there);
+#     the runner must NOT expose deployment secrets to the reviewed diff.
+#   - The reviewed diff is treated as untrusted data by codex-review.sh.
+#   - Third-party actions are pinned by commit SHA (supply-chain).
+name: codex-review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+# Least privilege: only what's needed to read code and post a review comment.
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: codex-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Self-hosted: Codex CLI + demo0 Bedrock profile are provisioned there.
+    runs-on: [self-hosted, codex]
+    # Never let this job's outcome block a merge — it is advisory.
+    continue-on-error: true
+    steps:
+      # actions/checkout@v4.2.2 pinned by SHA (supply-chain hardening).
+      - name: Checkout PR head
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Run Codex cross-provider review (advisory)
+        id: review
+        env:
+          BASE_REF: origin/${{ github.base_ref }}
+          # Least-privilege Bedrock profile for the reviewer; NO app/deploy secrets.
+          # Set repo/org variables to your runner's profile (portability — no
+          # environment specifics hardcoded in the published workflow).
+          AWS_PROFILE: ${{ vars.CODEX_REVIEW_AWS_PROFILE }}
+          AWS_REGION: ${{ vars.CODEX_REVIEW_AWS_REGION || 'us-east-1' }}
+        run: |
+          git fetch origin "${{ github.base_ref }}" --depth=1 || true
+          bash .github/scripts/codex-review.sh
+
+      - name: Post review as PR comment
+        if: always()
+        # actions/github-script@v7.0.1 pinned by SHA.
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const fs = require('fs');
+            const path = '.github/.codex-review/verdict.md';
+            let body = '### 🤖 Codex cross-provider review (advisory — non-blocking)\n\n';
+            try {
+              body += fs.readFileSync(path, 'utf8');
+            } catch (e) {
+              body += '_Review produced no output (runner/Codex error). Advisory only._';
+            }
+            body += '\n\n---\n_This check is advisory and does not block merge. ' +
+                    'A merge-blocking gate is owner-gated via #31._';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body,
+            });
+
+      # Emit a NON-required status so the verdict is visible without gating merge.
+      - name: Publish advisory verdict (non-blocking)
+        if: always()
+        run: |
+          echo "Codex advisory verdict: ${{ steps.review.outputs.codex_verdict || 'inconclusive' }}"
+          echo "This status is informational only; it does not block merge (#31 gated)."

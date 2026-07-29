@@ -1,0 +1,19 @@
+# Build context is the repo root (devcontainer image). Keep it tiny + secret-free:
+# the image only needs devcontainer/entrypoint.sh + deploy/make-codex-catalog.sh.
+.git
+**/.terraform
+**/.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+terraform.tfstate.d
+**/*.tfvars
+!**/*.tfvars.example
+internal
+.claude
+**/.env
+!**/.env.example
+node_modules
+**/node_modules
+**/.venv
+test-results
+.build

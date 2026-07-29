@@ -1,0 +1,29 @@
+# Dev-environment container for using Claude Code + Codex against the gateway.
+#
+#   cd devcontainer
+#   cp .env.example .env      # fill in GATEWAY_URL + LITELLM_KEY
+#   docker compose run --rm dev        # drops you into a configured shell
+#
+# Your project is mounted at /work (defaults to the parent of this dir; override
+# with PROJECT_DIR). Claude Code + Codex config persist in the named volumes.
+services:
+  dev:
+    # Build context is the repo root so the image can COPY deploy/ helpers
+    # (e.g. make-codex-catalog.sh) that the entrypoint needs regardless of the
+    # bind-mounted project's file mode (#30).
+    build:
+      context: ..
+      dockerfile: devcontainer/Dockerfile
+    image: tg-llmgateway-dev:latest
+    env_file: .env
+    working_dir: /work
+    volumes:
+      - ${PROJECT_DIR:-..}:/work
+      - claude-home:/home/dev/.claude
+      - codex-home:/home/dev/.codex
+    stdin_open: true
+    tty: true
+
+volumes:
+  claude-home:
+  codex-home:
