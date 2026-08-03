@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# tgw — friendly front-end over the gateway's model tooling (spec: tgw models).
+#
+# A thin launcher: it runs the Python wizard package that lives beside it in
+# deploy/wizard/. The wizard asks a few plain questions, shows what will
+# happen, then drives the EXISTING scripts (register-models.sh) unchanged by
+# setting the environment variables they already read. It never edits them.
+#
+#   ./tgw models              # update the gateway's model catalog
+#   ./tgw --dry-run models    # preview only; change nothing
+#   ./tgw --help
+#
+# questionary is optional; the wizard degrades to plain prompts if it's absent.
+set -euo pipefail
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+command -v python3 >/dev/null 2>&1 || {
+  echo "tgw: python3 is required but was not found on PATH." >&2
+  exit 2
+}
+
+# Run the package by putting deploy/ (this script's dir) on the module path and
+# invoking `-m wizard`, so `wizard` resolves regardless of the operator's cwd.
+export PYTHONPATH="${HERE}${PYTHONPATH:+:$PYTHONPATH}"
+exec python3 -m wizard "$@"
