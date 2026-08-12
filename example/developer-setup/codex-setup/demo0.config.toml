@@ -1,0 +1,16 @@
+model_provider = "lg-GATEWAY-mantle-on-demo0"
+model = "demo0/openai.gpt-5.6-sol"
+model_catalog_json = "$HOME/.codex/model-catalogs/lg-GATEWAY-mantle-on-demo0.json"
+web_search = "disabled"
+model_reasoning_effort = "medium"
+
+[model_providers.lg-GATEWAY-mantle-on-demo0]
+name = "Demo0 Mantle models via LiteLLM gateway"
+base_url = "https://EXAMPLE.cloudfront.net/v1"
+wire_api = "responses"
+
+[model_providers.lg-GATEWAY-mantle-on-demo0.auth]
+command = "/usr/bin/cat"
+args = ["$HOME/.codex/secrets/lg-GATEWAY-mantle-on-demo0-litellm-key"]
+timeout_ms = 1000
+refresh_interval_ms = 0
