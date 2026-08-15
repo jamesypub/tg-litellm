@@ -1,0 +1,39 @@
+# Terraform
+**/.terraform/
+# NOTE: .terraform.lock.hcl is intentionally COMMITTED (not ignored) so providers
+# are pinned to exact, hash-verified versions — reproducible installs (#26).
+*.tfstate
+*.tfstate.*
+terraform.tfstate.d/
+crash.log
+crash.*.log
+
+# Real tfvars may contain secrets — commit *.tfvars.example instead
+*.tfvars
+!*.tfvars.example
+
+# Secrets / credentials
+*.key
+*bedrock*.key
+/tmp/*.key
+
+# Python
+**/.venv/
+**/__pycache__/
+*.pyc
+
+# Local scratch
+*.log
+
+# dev container secrets
+devcontainer/.env
+
+# test run logs
+internal/tests/logs/
+
+# terraform archive_file build output
+deploy/.build/
+
+# Local-only operator notes containing credentials/endpoints — never commit.
+internal/demo-logins.md
+internal/codex-demo2-setup.md
